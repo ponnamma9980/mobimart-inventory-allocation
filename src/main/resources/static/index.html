@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MobiMart Inventory Allocation</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --border: #e5e7eb;
+            --text: #111827;
+            --muted: #64748b;
+            --blue: #2563eb;
+            --blue-soft: #eff6ff;
+            --green: #16a34a;
+            --green-soft: #dcfce7;
+            --amber: #d97706;
+            --amber-soft: #fef3c7;
+            --red: #dc2626;
+            --red-soft: #fee2e2;
+            --shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.45;
+        }
+
+        /* ================= HEADER ================= */
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 26px 42px;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .header-inner {
+            max-width: 1500px;
+            margin: auto;
+        }
+
+        .header h1 {
+            font-size: 29px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.4px;
+        }
+
+        .header p {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        /* ================= MAIN ================= */
+
+        .container {
+            max-width: 1500px;
+            margin: auto;
+            padding: 28px 38px 10px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        /* ================= KPI CARDS ================= */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            min-height: 128px;
+        }
+
+        .card-title {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.65px;
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 27px;
+            line-height: 1.15;
+            font-weight: 700;
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .card-subtitle {
+            margin-top: 8px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* ================= BUDGET ================= */
+
+        .budget-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 21px 22px;
+            border-radius: 11px;
+            box-shadow: var(--shadow);
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .budget-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .budget-header span {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--blue);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+
+        /* ================= PANELS ================= */
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 19px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .panel-header h2 {
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .panel-header p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .panel-body {
+            padding: 22px;
+        }
+
+        /* ================= FILTERS ================= */
+
+        .filters-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .filters-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 17px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        select,
+        input {
+            width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            background: white;
+            color: #1f2937;
+            font-size: 13px;
+            outline: none;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+        }
+
+        /* ================= TABLE ================= */
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1150px;
+        }
+
+        th {
+            background: var(--surface-soft);
+            color: #475569;
+            text-align: left;
+            padding: 12px 13px;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.45px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #eef2f7;
+            font-size: 12.5px;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #fafcff;
+        }
+
+        .phone-name {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .recommended {
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .priority {
+            font-weight: 700;
+        }
+
+        /* ================= BADGES ================= */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .high {
+            background: var(--red-soft);
+            color: #991b1b;
+        }
+
+        .medium {
+            background: var(--amber-soft);
+            color: #92400e;
+        }
+
+        .low {
+            background: var(--green-soft);
+            color: #166534;
+        }
+
+        /* ================= STATUS ================= */
+
+        .status {
+            padding: 28px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .error {
+            color: var(--red);
+            padding: 22px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px !important;
+            color: var(--muted);
+        }
+
+        /* ================= RESULT COUNT ================= */
+
+        .result-count {
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        /* ================= COMPARISON ================= */
+
+        .comparison-description {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+            margin-bottom: 20px;
+        }
+
+        .comparison-table {
+            min-width: 850px;
+        }
+
+        .comparison-table th {
+            background: #111827;
+            color: white;
+            border-bottom: none;
+        }
+
+        .comparison-table td {
+            font-size: 13px;
+        }
+
+        .our-value {
+            font-weight: 700;
+            color: #1d4ed8;
+        }
+
+        .baseline-value {
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .improvement {
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .winner {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: var(--green-soft);
+            color: #166534;
+            font-weight: 700;
+            font-size: 10px;
+        }
+
+        .comparison-summary {
+            margin-top: 18px;
+            padding: 15px 17px;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            line-height: 1.6;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        /* ================= LOGIC ================= */
+
+        .logic-text {
+            color: #475569;
+            line-height: 1.7;
+            font-size: 13px;
+        }
+
+        .logic-flow {
+            display: grid;
+            grid-template-columns: 1fr 35px 1fr 35px 1fr 35px 1fr 35px 1.3fr;
+            align-items: center;
+            gap: 7px;
+            margin-top: 22px;
+        }
+
+        .logic-box {
+            text-align: center;
+            padding: 15px 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-soft);
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arrow {
+            text-align: center;
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 11px;
+            padding: 22px 20px 28px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1200px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filters {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .logic-flow {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .arrow {
+                display: none;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .header {
+                padding: 22px 20px;
+            }
+
+            .header h1 {
+                font-size: 23px;
+            }
+
+            .container {
+                padding: 20px 14px 5px;
+            }
+
+            .cards,
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                min-height: 115px;
+            }
+
+            .card-value {
+                font-size: 24px;
+            }
+
+            .panel-header {
+                padding: 16px;
+            }
+
+            .panel-body,
+            .filters-panel {
+                padding: 16px;
+            }
+
+            .budget-card {
+                padding: 17px;
+            }
+
+            .budget-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .logic-flow {
+                grid-template-columns: 1fr;
+            }
+
+            .arrow {
+                display: block;
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+
+<header class="header">
+    <div class="header-inner">
+        <h1>MobiMart Inventory Allocation</h1>
+        <p>Smart inventory replenishment and budget-constrained allocation dashboard</p>
+    </div>
+</header>
+
+
+<main class="container">
+
+    <!-- ================= ALLOCATION SUMMARY ================= -->
+
+    <section class="section">
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="card-title">Recommendations</div>
+                <div class="card-value" id="totalRecommendations">-</div>
+                <div class="card-subtitle">Allocation opportunities</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Allocation Value</div>
+                <div class="card-value" id="totalAllocation">-</div>
+                <div class="card-subtitle">Recommended inventory investment</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Recommended Units</div>
+                <div class="card-value" id="totalUnits">-</div>
+                <div class="card-subtitle">Total units to replenish</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Average Priority</div>
+                <div class="card-value" id="averagePriority">-</div>
+                <div class="card-subtitle">Across recommendations</div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= BUDGET ================= -->
+
+    <section class="section">
+
+        <div class="budget-card">
+
+            <div class="budget-header">
+                <h3>Chain-wide Inventory Budget</h3>
+
+                <span id="budgetText">
+                    ₹0 / ₹4,00,00,000
+                </span>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= OWNER DASHBOARD ================= -->
+
+    <section class="section">
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="card-title">Current Inventory Capital</div>
+
+                <div class="card-value" id="currentInventoryCapital">
+                    Loading...
+                </div>
+
+                <div class="card-subtitle">
+                    Total value of stock currently held
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">At-Risk Capital</div>
+
+                <div class="card-value" id="atRiskCapital">
+                    Loading...
+                </div>
+
+                <div class="card-subtitle">
+                    Inventory exposed to EOL risk
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">EOL Risk Items</div>
+
+                <div class="card-value" id="eolRiskItems">
+                    Loading...
+                </div>
+
+                <div class="card-subtitle">
+                    Store + phone combinations at risk
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">Transfer Savings</div>
+
+                <div class="card-value" id="transferSavings">
+                    Loading...
+                </div>
+
+                <div class="card-subtitle">
+                    Markdown exposure avoided by transfer
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= EOL RISK ================= -->
+
+    <section class="section">
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>End-of-Life Risk Analysis</h2>
+                    <p>Inventory requiring action before product lifecycle expiry</p>
+                </div>
+
+                <div class="result-count" id="eolResultCount">
+                    Loading...
+                </div>
+
+            </div>
+
+            <div id="eolStatus" class="status">
+                Loading EOL risk data...
+            </div>
+
+            <div class="table-container">
+
+                <table id="eolTable" style="display:none;">
+
+                    <thead>
+                    <tr>
+                        <th>Store</th>
+                        <th>City</th>
+                        <th>Phone</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Inventory Value</th>
+                        <th>Risk</th>
+                        <th>Markdown Cost</th>
+                        <th>Transfer Cost</th>
+                        <th>Recommended Action</th>
+                        <th>Decision Cost</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="eolBody"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= FILTERS ================= -->
+
+    <section class="section">
+
+        <div class="filters-panel">
+
+            <div class="filters-title">
+                Filter Recommendations
+            </div>
+
+            <div class="filters">
+
+                <div class="filter-group">
+
+                    <label for="cityFilter">City</label>
+
+                    <select id="cityFilter">
+                        <option value="ALL">All Cities</option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="categoryFilter">Category</label>
+
+                    <select id="categoryFilter">
+                        <option value="ALL">All Categories</option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="storeFilter">Store</label>
+
+                    <select id="storeFilter">
+                        <option value="ALL">All Stores</option>
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label for="searchInput">Search</label>
+
+                    <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Search phone or store..."
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= ALLOCATION TABLE ================= -->
+
+    <section class="section">
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Allocation Recommendations</h2>
+                    <p>Recommended inventory replenishment by store and phone</p>
+                </div>
+
+                <div class="result-count" id="resultCount">
+                    Loading...
+                </div>
+
+            </div>
+
+            <div id="status" class="status">
+                Loading recommendations...
+            </div>
+
+            <div class="table-container">
+
+                <table id="allocationTable" style="display:none;">
+
+                    <thead>
+
+                    <tr>
+                        <th>Store</th>
+                        <th>City</th>
+                        <th>Phone</th>
+                        <th>Category</th>
+                        <th>Weekly Sales</th>
+                        <th>Current</th>
+                        <th>Target</th>
+                        <th>Need</th>
+                        <th>Recommended</th>
+                        <th>Allocation</th>
+                        <th>Priority</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody id="allocationBody"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= PERFORMANCE COMPARISON ================= -->
+
+    <section class="section">
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Our System vs Naive Baseline</h2>
+                    <p>Performance comparison across inventory optimization metrics</p>
+                </div>
+
+            </div>
+
+            <div class="panel-body">
+
+                <p class="comparison-description">
+                    The proposed inventory allocation engine is compared against
+                    a naive baseline that allocates inventory proportionally to
+                    the previous month's sales. Lower is better for stockout rate,
+                    weeks of cover, dead stock and markdown loss. Higher is better
+                    for capital turns.
+                </p>
+
+                <div id="comparisonStatus" class="status">
+                    Loading performance comparison...
+                </div>
+
+                <div class="table-container">
+
+                    <table
+                            class="comparison-table"
+                            id="comparisonTable"
+                            style="display:none;"
+                    >
+
+                        <thead>
+
+                        <tr>
+                            <th>Metric</th>
+                            <th>Our System</th>
+                            <th>Naive Baseline</th>
+                            <th>Improvement</th>
+                            <th>Winner</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="comparisonBody"></tbody>
+
+                    </table>
+
+                </div>
+
+                <div
+                        class="comparison-summary"
+                        id="comparisonSummary"
+                        style="display:none;"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= LOGIC ================= -->
+
+    <section class="section">
+
+        <div class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Recommendation Logic</h2>
+                    <p>How the inventory allocation engine makes decisions</p>
+                </div>
+
+            </div>
+
+            <div class="panel-body">
+
+                <p class="logic-text">
+                    MobiMart analyzes historical sales data to estimate average
+                    weekly demand for each phone at each store. The system targets
+                    approximately two weeks of inventory coverage and compares this
+                    target with current inventory. Products with inventory gaps are
+                    evaluated using store attractiveness, stockout impact, product
+                    lifecycle and demand. The final allocation is constrained by
+                    the ₹4 crore chain-wide inventory budget.
+                </p>
+
+
+                <div class="logic-flow">
+
+                    <div class="logic-box">
+                        Historical Sales
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="logic-box">
+                        Demand Analysis
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="logic-box">
+                        Inventory Gap
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="logic-box">
+                        Priority Score
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="logic-box">
+                        Budget-Constrained Allocation
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+    MobiMart Inventory Optimization System
+</footer>
+
+
+<script>
+
+    let allData = [];
+
+    const INVENTORY_BUDGET = 40000000;
+
+
+    /* =========================================================
+       LOAD ALLOCATIONS
+    ========================================================= */
+
+    async function loadAllocations() {
+
+        try {
+
+            const response = await fetch('/api/allocation');
+
+            if (!response.ok) {
+                throw new Error("Allocation API request failed");
+            }
+
+            allData = await response.json();
+
+            if (!Array.isArray(allData)) {
+                throw new Error("Invalid allocation response");
+            }
+
+            document.getElementById("status").style.display = "none";
+
+            document.getElementById("allocationTable").style.display = "table";
+
+            populateFilters();
+
+            updateSummary(allData);
+
+            renderTable(allData);
+
+        } catch (error) {
+
+            console.error(error);
+
+            document.getElementById("status").innerHTML =
+                "<div class='error'>" +
+                "Unable to load allocation data. " +
+                "Make sure Spring Boot is running." +
+                "</div>";
+
+        }
+
+    }
+
+
+    /* =========================================================
+       FILTERS
+    ========================================================= */
+
+    function populateFilters() {
+
+        const cityFilter =
+            document.getElementById("cityFilter");
+
+        const categoryFilter =
+            document.getElementById("categoryFilter");
+
+        const storeFilter =
+            document.getElementById("storeFilter");
+
+
+        cityFilter.innerHTML =
+            '<option value="ALL">All Cities</option>';
+
+        categoryFilter.innerHTML =
+            '<option value="ALL">All Categories</option>';
+
+        storeFilter.innerHTML =
+            '<option value="ALL">All Stores</option>';
+
+
+        const cities =
+            [...new Set(
+                allData
+                    .map(item => item.city)
+                    .filter(Boolean)
+            )].sort();
+
+
+        const categories =
+            [...new Set(
+                allData
+                    .map(item => item.category)
+                    .filter(Boolean)
+            )].sort();
+
+
+        const stores =
+            [...new Set(
+                allData
+                    .map(item => item.store)
+                    .filter(Boolean)
+            )].sort();
+
+
+        cities.forEach(city => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = city;
+            option.textContent = city;
+
+            cityFilter.appendChild(option);
+
+        });
+
+
+        categories.forEach(category => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = category;
+            option.textContent = category;
+
+            categoryFilter.appendChild(option);
+
+        });
+
+
+        stores.forEach(store => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = store;
+            option.textContent = store;
+
+            storeFilter.appendChild(option);
+
+        });
+
+    }
+
+
+    function getFilteredData() {
+
+        const city =
+            document.getElementById("cityFilter").value;
+
+        const category =
+            document.getElementById("categoryFilter").value;
+
+        const store =
+            document.getElementById("storeFilter").value;
+
+        const search =
+            document.getElementById("searchInput")
+                .value
+                .toLowerCase()
+                .trim();
+
+
+        return allData.filter(item => {
+
+            if (
+                city !== "ALL" &&
+                item.city !== city
+            ) {
+                return false;
+            }
+
+
+            if (
+                category !== "ALL" &&
+                item.category !== category
+            ) {
+                return false;
+            }
+
+
+            if (
+                store !== "ALL" &&
+                item.store !== store
+            ) {
+                return false;
+            }
+
+
+            if (search !== "") {
+
+                const searchable =
+                    (
+                        (item.store || "") + " " +
+                        (item.phone || "") + " " +
+                        (item.city || "") + " " +
+                        (item.category || "")
+                    ).toLowerCase();
+
+
+                if (!searchable.includes(search)) {
+                    return false;
+                }
+
+            }
+
+
+            return true;
+
+        });
+
+    }
+
+
+    /* =========================================================
+       SUMMARY
+    ========================================================= */
+
+    function updateSummary(data) {
+
+        let totalUnits = 0;
+
+        let totalAllocation = 0;
+
+        let priorityTotal = 0;
+
+
+        data.forEach(item => {
+
+            totalUnits +=
+                Number(item.recommendedUnits || 0);
+
+            totalAllocation +=
+                Number(item.allocationValue || 0);
+
+            priorityTotal +=
+                Number(item.priorityScore || 0);
+
+        });
+
+
+        const averagePriority =
+            data.length > 0
+                ? priorityTotal / data.length
+                : 0;
+
+
+        document.getElementById(
+            "totalRecommendations"
+        ).textContent =
+            data.length.toLocaleString("en-IN");
+
+
+        document.getElementById(
+            "totalUnits"
+        ).textContent =
+            totalUnits.toLocaleString("en-IN");
+
+
+        document.getElementById(
+            "totalAllocation"
+        ).textContent =
+            formatCurrency(totalAllocation);
+
+
+        document.getElementById(
+            "averagePriority"
+        ).textContent =
+            averagePriority.toFixed(2);
+
+
+        const percentage =
+            Math.min(
+                (totalAllocation / INVENTORY_BUDGET) * 100,
+                100
+            );
+
+
+        document.getElementById(
+            "progressBar"
+        ).style.width =
+            percentage + "%";
+
+
+        document.getElementById(
+            "budgetText"
+        ).textContent =
+            formatCurrency(totalAllocation) +
+            " / ₹4,00,00,000";
+
+    }
+
+
+    /* =========================================================
+       ALLOCATION TABLE
+    ========================================================= */
+
+    function renderTable(data) {
+
+        const tbody =
+            document.getElementById("allocationBody");
+
+
+        tbody.innerHTML = "";
+
+
+        document.getElementById(
+            "resultCount"
+        ).textContent =
+            data.length.toLocaleString("en-IN") +
+            " recommendations";
+
+
+        if (data.length === 0) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="empty">
+                        No recommendations match the selected filters.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        const sortedData =
+            [...data].sort(
+                (a, b) =>
+                    Number(b.priorityScore || 0) -
+                    Number(a.priorityScore || 0)
+            );
+
+
+        sortedData.forEach(item => {
+
+            const priority =
+                Number(item.priorityScore || 0);
+
+
+            let priorityClass = "low";
+
+            let priorityText = "LOW";
+
+
+            if (priority >= 50) {
+
+                priorityClass = "high";
+
+                priorityText = "HIGH";
+
+            } else if (priority >= 15) {
+
+                priorityClass = "medium";
+
+                priorityText = "MEDIUM";
+
+            }
+
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${escapeHtml(item.store)}
+                </td>
+
+                <td>
+                    ${escapeHtml(item.city)}
+                </td>
+
+                <td class="phone-name">
+                    ${escapeHtml(item.phone)}
+                </td>
+
+                <td>
+                    ${escapeHtml(item.category)}
+                </td>
+
+                <td>
+                    ${formatNumber(item.averageWeeklySales, 2)}
+                </td>
+
+                <td>
+                    ${formatNumber(item.currentInventory, 0)}
+                </td>
+
+                <td>
+                    ${formatNumber(item.targetInventory, 0)}
+                </td>
+
+                <td>
+                    ${formatNumber(item.replenishmentNeed, 0)}
+                </td>
+
+                <td class="recommended">
+                    ${formatNumber(item.recommendedUnits, 0)}
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        Number(item.allocationValue || 0)
+                    )}
+                </td>
+
+                <td class="priority">
+
+                    <span class="badge ${priorityClass}">
+                        ${priorityText}
+                        ${priority.toFixed(2)}
+                    </span>
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(row);
+
+        });
+
+    }
+
+
+    /* =========================================================
+       EOL RISK
+    ========================================================= */
+
+    async function loadEolRisk() {
+
+        try {
+
+            const response =
+                await fetch('/api/eol-risk');
+
+
+            if (!response.ok) {
+                throw new Error("EOL API request failed");
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (!Array.isArray(data)) {
+                throw new Error("Invalid EOL response");
+            }
+
+
+            updateEolSummary(data);
+
+            renderEolTable(data);
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            document.getElementById(
+                "eolStatus"
+            ).innerHTML =
+                "<div class='error'>" +
+                "Unable to load EOL risk data." +
+                "</div>";
+
+        }
+
+    }
+
+
+    function updateEolSummary(data) {
+
+        let currentCapital = 0;
+
+        let atRiskCapital = 0;
+
+        let transferSavings = 0;
+
+
+        data.forEach(item => {
+
+            const inventoryValue =
+                Number(item.inventoryValue || 0);
+
+            const markdownCost =
+                Number(item.markdownCost || 0);
+
+            const transferCost =
+                Number(item.transferCost || 0);
+
+
+            currentCapital +=
+                inventoryValue;
+
+
+            atRiskCapital +=
+                markdownCost;
+
+
+            if (
+                String(item.recommendedAction)
+                    .toUpperCase() === "TRANSFER"
+            ) {
+
+                transferSavings +=
+                    Math.max(
+                        0,
+                        markdownCost - transferCost
+                    );
+
+            }
+
+        });
+
+
+        document.getElementById(
+            "currentInventoryCapital"
+        ).textContent =
+            formatCurrency(currentCapital);
+
+
+        document.getElementById(
+            "atRiskCapital"
+        ).textContent =
+            formatCurrency(atRiskCapital);
+
+
+        document.getElementById(
+            "eolRiskItems"
+        ).textContent =
+            data.length.toLocaleString("en-IN");
+
+
+        document.getElementById(
+            "transferSavings"
+        ).textContent =
+            formatCurrency(transferSavings);
+
+    }
+
+
+    function renderEolTable(data) {
+
+        const tbody =
+            document.getElementById("eolBody");
+
+
+        tbody.innerHTML = "";
+
+
+        document.getElementById(
+            "eolStatus"
+        ).style.display = "none";
+
+
+        document.getElementById(
+            "eolTable"
+        ).style.display = "table";
+
+
+        document.getElementById(
+            "eolResultCount"
+        ).textContent =
+            data.length.toLocaleString("en-IN") +
+            " risk items";
+
+
+        if (data.length === 0) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="empty">
+                        No EOL-risk inventory found.
+                    </td>
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        data.forEach(item => {
+
+            let riskClass = "low";
+
+
+            const risk =
+                String(item.riskLevel || "")
+                    .toUpperCase();
+
+
+            if (risk === "HIGH") {
+
+                riskClass = "high";
+
+            } else if (risk === "MEDIUM") {
+
+                riskClass = "medium";
+
+            }
+
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${escapeHtml(item.store)}
+                </td>
+
+                <td>
+                    ${escapeHtml(item.city)}
+                </td>
+
+                <td class="phone-name">
+                    ${escapeHtml(item.phone)}
+                </td>
+
+                <td>
+                    ${escapeHtml(item.category)}
+                </td>
+
+                <td>
+                    ${formatNumber(item.currentInventory, 0)}
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        Number(item.inventoryValue || 0)
+                    )}
+                </td>
+
+                <td>
+                    <span class="badge ${riskClass}">
+                        ${escapeHtml(item.riskLevel)}
+                    </span>
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        Number(item.markdownCost || 0)
+                    )}
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        Number(item.transferCost || 0)
+                    )}
+                </td>
+
+                <td>
+                    <strong>
+                        ${escapeHtml(item.recommendedAction)}
+                    </strong>
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        Number(
+                            item.recommendedCost ||
+                            item.decisionCost ||
+                            0
+                        )
+                    )}
+                </td>
+
+            `;
+
+
+            tbody.appendChild(row);
+
+        });
+
+    }
+
+
+    /* =========================================================
+       PERFORMANCE COMPARISON
+    ========================================================= */
+
+    async function loadComparison() {
+
+        try {
+
+            const response =
+                await fetch('/api/comparison');
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Comparison API request failed"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            renderComparison(data);
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            document.getElementById(
+                "comparisonStatus"
+            ).innerHTML =
+                "<div class='error'>" +
+                "Unable to load performance comparison." +
+                "</div>";
+
+        }
+
+    }
+
+
+    function renderComparison(data) {
+
+        if (
+            !data ||
+            !data.ourSystem ||
+            !data.naiveBaseline
+        ) {
+
+            throw new Error(
+                "Invalid comparison response"
+            );
+
+        }
+
+
+        const our =
+            data.ourSystem;
+
+        const baseline =
+            data.naiveBaseline;
+
+
+        const rows = [
+
+            {
+                name: "Stockout Rate",
+                our: Number(our.stockoutRate),
+                base: Number(baseline.stockoutRate),
+                suffix: "%",
+                lowerBetter: true
+            },
+
+            {
+                name: "Weeks of Cover",
+                our: Number(our.weeksOfCover),
+                base: Number(baseline.weeksOfCover),
+                suffix: " weeks",
+                lowerBetter: true
+            },
+
+            {
+                name: "Dead Stock",
+                our: Number(our.deadStockPercent),
+                base: Number(baseline.deadStockPercent),
+                suffix: "%",
+                lowerBetter: true
+            },
+
+            {
+                name: "Markdown Loss",
+                our: Number(our.markdownLoss),
+                base: Number(baseline.markdownLoss),
+                suffix: "",
+                lowerBetter: true
+            },
+
+            {
+                name: "Capital Turns",
+                our: Number(our.capitalTurns),
+                base: Number(baseline.capitalTurns),
+                suffix: "x",
+                lowerBetter: false
+            }
+
+        ];
+
+
+        const tbody =
+            document.getElementById(
+                "comparisonBody"
+            );
+
+
+        tbody.innerHTML = "";
+
+
+        let ourWins = 0;
+
+
+        rows.forEach(row => {
+
+            const ourWinsMetric =
+                row.lowerBetter
+                    ? row.our < row.base
+                    : row.our > row.base;
+
+
+            if (ourWinsMetric) {
+                ourWins++;
+            }
+
+
+            let improvement = 0;
+
+
+            if (row.base !== 0) {
+
+                if (row.lowerBetter) {
+
+                    improvement =
+                        ((row.base - row.our) /
+                        row.base) * 100;
+
+                } else {
+
+                    improvement =
+                        ((row.our - row.base) /
+                        row.base) * 100;
+
+                }
+
+            }
+
+
+            const ourValue =
+                row.name === "Markdown Loss"
+                    ? formatCurrency(row.our)
+                    : row.our.toFixed(2) +
+                      row.suffix;
+
+
+            const baselineValue =
+                row.name === "Markdown Loss"
+                    ? formatCurrency(row.base)
+                    : row.base.toFixed(2) +
+                      row.suffix;
+
+
+            const tr =
+                document.createElement("tr");
+
+
+            tr.innerHTML = `
+
+                <td>
+                    <strong>
+                        ${row.name}
+                    </strong>
+                </td>
+
+                <td class="our-value">
+                    ${ourValue}
+                </td>
+
+                <td class="baseline-value">
+                    ${baselineValue}
+                </td>
+
+                <td class="improvement">
+                    ${improvement.toFixed(1)}%
+                </td>
+
+                <td>
+
+                    ${
+                        ourWinsMetric
+
+                        ? "<span class='winner'>OUR SYSTEM</span>"
+
+                        : "<span class='badge medium'>BASELINE</span>"
+                    }
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(tr);
+
+        });
+
+
+        document.getElementById(
+            "comparisonStatus"
+        ).style.display = "none";
+
+
+        document.getElementById(
+            "comparisonTable"
+        ).style.display = "table";
+
+
+        document.getElementById(
+            "comparisonSummary"
+        ).style.display = "block";
+
+
+        document.getElementById(
+            "comparisonSummary"
+        ).innerHTML =
+
+            "<strong>Result:</strong> " +
+            "Our inventory optimization system wins " +
+            ourWins +
+            " out of " +
+            rows.length +
+            " scorecard metrics against the naive " +
+            "last-month-sales baseline.";
+
+    }
+
+
+    /* =========================================================
+       HELPERS
+    ========================================================= */
+
+    function formatCurrency(value) {
+
+        const number =
+            Number(value || 0);
+
+
+        return "₹" +
+            number.toLocaleString(
+                "en-IN",
+                {
+                    maximumFractionDigits: 0
+                }
+            );
+
+    }
+
+
+    function formatNumber(value, decimals = 0) {
+
+        const number =
+            Number(value);
+
+
+        if (!Number.isFinite(number)) {
+            return "-";
+        }
+
+
+        return number.toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }
+        );
+
+    }
+
+
+    function escapeHtml(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+            return "";
+        }
+
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    /* =========================================================
+       FILTER EVENTS
+    ========================================================= */
+
+    document
+        .getElementById("cityFilter")
+        .addEventListener(
+            "change",
+            function () {
+
+                const filtered =
+                    getFilteredData();
+
+                updateSummary(filtered);
+
+                renderTable(filtered);
+
+            }
+        );
+
+
+    document
+        .getElementById("categoryFilter")
+        .addEventListener(
+            "change",
+            function () {
+
+                const filtered =
+                    getFilteredData();
+
+                updateSummary(filtered);
+
+                renderTable(filtered);
+
+            }
+        );
+
+
+    document
+        .getElementById("storeFilter")
+        .addEventListener(
+            "change",
+            function () {
+
+                const filtered =
+                    getFilteredData();
+
+                updateSummary(filtered);
+
+                renderTable(filtered);
+
+            }
+        );
+
+
+    document
+        .getElementById("searchInput")
+        .addEventListener(
+            "input",
+            function () {
+
+                const filtered =
+                    getFilteredData();
+
+                updateSummary(filtered);
+
+                renderTable(filtered);
+
+            }
+        );
+
+
+    /* =========================================================
+       START APPLICATION
+    ========================================================= */
+
+    loadAllocations();
+
+    loadEolRisk();
+
+    loadComparison();
+
+</script>
+
+</body>
+</html>
